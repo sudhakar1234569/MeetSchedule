@@ -1,5 +1,6 @@
 // formDataSlice.js
 import { createSlice } from '@reduxjs/toolkit';
+import { date } from 'yup';
 
 const formDataSlice = createSlice({
   name: 'formData',
@@ -10,6 +11,7 @@ const formDataSlice = createSlice({
     message: '',
     recruiter: '',
     timeSlot: '',
+    date:''
   },
   reducers: {
     setFormField: (state, action) => {
@@ -24,10 +26,14 @@ const formDataSlice = createSlice({
         message: '',
         recruiter: '',
         timeSlot: '',
+        date:''
       };
     },
+    setDate:(state,action)=>{
+      state[date] = action.payload
+    }
   },
 });
 
-export const { setFormField, clearForm } = formDataSlice.actions;
+export const { setFormField, clearForm ,setDate} = formDataSlice.actions;
 export default formDataSlice.reducer;

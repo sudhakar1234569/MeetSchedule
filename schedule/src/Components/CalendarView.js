@@ -92,11 +92,12 @@ const CalendarView = () => {
     <div className="mt-4 w-75 ms-auto me-auto justify-content-center align-items-center">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
+        initialView="dayGridWeek"
         events={holidayEvents}
         selectable={true}
         select={handleDayClick}
         height={"80vh"}
+        // dayCellDidMount={handlePastDays}
       />
       <Modal show={show} onHide={handleClose} className="sizeIncrease">
         <Modal.Header closeButton>
@@ -134,7 +135,7 @@ const CalendarView = () => {
                   ))}
                   <tr><td></td></tr>
                   <tr>
-                    <td colspan="2" className="table-warning">
+                    <td colSpan="2" className="table-warning">
                       Recruiter 2 - Schedule
                     </td>
                   </tr>
@@ -154,7 +155,7 @@ const CalendarView = () => {
                   }
                   <tr><td></td></tr>
                    <tr>
-                    <td colspan="2" className="table-info">
+                    <td colSpan="2" className="table-info">
                       Recruiter 3 - Schedule
                     </td>
                   </tr>
@@ -174,7 +175,7 @@ const CalendarView = () => {
                   }
                   <tr><td></td></tr>
                    <tr>
-                    <td colspan="2" className="table-info">
+                    <td colSpan="2" className="table-info">
                       Recruiter 4 - Schedule
                     </td>
                   </tr>
@@ -194,7 +195,7 @@ const CalendarView = () => {
                   }
                    <tr><td></td></tr>
                    <tr>
-                    <td colspan="2" className="table-info">
+                    <td colSpan="2" className="table-info">
                       Recruiter 5 - Schedule
                     </td>
                   </tr>
