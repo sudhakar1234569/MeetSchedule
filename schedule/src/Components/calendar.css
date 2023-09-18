@@ -1,3 +1,10 @@
 .fc-daygrid-day-number{
     cursor: pointer;
 }
+.modal-content{
+    width: 650px !important;
+}
+.modal-body.resize{
+    height: 500px;
+    overflow-y: auto !important;
+}

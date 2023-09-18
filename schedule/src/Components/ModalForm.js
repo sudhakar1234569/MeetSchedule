@@ -76,8 +76,8 @@ function ModalForm() {
 
     // You can add your form submission logic here
     console.log(newFormData);
-
     handleClose();
+    window.location.reload()
   };
 
 
