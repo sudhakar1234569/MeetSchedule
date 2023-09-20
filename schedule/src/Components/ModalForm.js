@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { setFormField, clearForm,setDate } from "../features/formSlice";
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { setFormField, clearForm } from "../features/formSlice";
+import { date } from "yup";
 
 function ModalForm() {
   const dispatch = useDispatch();
@@ -13,9 +12,15 @@ function ModalForm() {
   const [disabledRecruiters, setDisabledRecruiters] = React.useState([]);
   const [currentRecruiter, setCurrentRecruiter] = useState([]);
   const [countOfDisableRecruiters, setCountOfDisableRecruiters] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const minDate = new Date().toISOString().split("T")[0]
+  const [selectedDate1, setSelectedDate] = useState(null);
+  const [calViewDate, setCalViewDate] = useState("");
+  const [disabledDate, setDisabledDate] = useState(null);
+  const minDate = new Date().toISOString().split("T")[0];
+  const [formDateValue, setFormDateValue] = useState("");
 
+  const today = new Date();
+  const nextDay = new Date(today);
+  nextDay.setDate(today.getDate() + 1);
   const [formErrors, setFormErrors] = useState({
     name: "",
     email: "",
@@ -26,14 +31,34 @@ function ModalForm() {
     timeSlot: "",
   });
 
+  const timeSlots = [
+    { value: "", label: "Select a time slot" },
+    { value: "9:00 AM to 10:00 AM", label: "9:00 AM to 10:00 AM" },
+    { value: "10:00 AM to 11:00 AM", label: "10:00 AM to 11:00 AM" },
+    { value: "11:00 AM to 12:00 PM", label: "11:00 AM to 12:00 PM" },
+    { value: "12:00 PM to 01:00 PM", label: "12:00 PM to 01:00 PM" },
+    { value: "01:00 PM to 02:00 PM", label: "01:00 PM to 02:00 PM" },
+    { value: "02:00 PM to 03:00 PM", label: "02:00 PM to 03:00 PM" },
+    { value: "03:00 PM to 04:00 PM", label: "03:00 PM to 04:00 PM" },
+    { value: "04:00 PM to 05:00 PM", label: "04:00 PM to 05:00 PM" },
+    { value: "05:00 PM to 06:00 PM", label: "05:00 PM to 06:00 PM" },
+    { value: "06:00 PM to 07:00 PM", label: "06:00 PM to 07:00 PM" },
+  ].map((slot) => {
+    return {
+      ...slot,
+      disabled:
+        storedData.timeSlots && storedData.timeSlots.includes(slot.value),
+    };
+  });
+
   const handleClose = () => {
     dispatch(clearForm());
     setShow(false);
-
+    setFormDateValue("");
     setFormErrors({});
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Retrieve the stored data from local storage
     const storedDataString = localStorage.getItem(
       `${formData.recruiter}-${formData.date}`
@@ -43,23 +68,37 @@ function ModalForm() {
     } else {
       setStoredData({});
     }
-    
   }, [formData.recruiter, formData.date]);
 
-  useEffect(()=>{
+  useEffect(() => {
+    console.log("Stored date :", storedData.date);
 
-    console.log("Stored date :" ,storedData.date);
-
-    if(storedData.date === formData.date){
+    if (storedData.date === formData.date) {
+    } else {
+      setDisabledRecruiters([]);
     }
-    else{
-      setDisabledRecruiters([])
-    }
+  }, [storedData.date, formData.date]);
 
-  },[storedData.date,formData.date])
+  // Function to check if a date is a Friday
+  const isFriday = (dateString) => {
+    const date = new Date(dateString);
+    return date.getDay() === 5; // 5 corresponds to Friday (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+  };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
+
+    if (name === "date") {
+      const newValue = event.target.value;
+      
+      if (!isFriday(newValue)) {
+        console.log("New value friday",newValue);
+        dispatch(setFormField({ field: name, value }));
+        setFormDateValue(newValue);
+      }
+      
+     
+    }
 
     dispatch(setFormField({ field: name, value }));
     setFormErrors({
@@ -69,28 +108,81 @@ function ModalForm() {
   };
 
   useEffect(() => {
+
+    setCalViewDate(localStorage.getItem("calselectedDate"));
     // Calculate the number of disabled time slots
     const disabledTimeSlotsCount = timeSlots.filter(
       (slot) => slot.disabled
     ).length;
-    const countLen = localStorage.getItem("disabledRecruiters");
+    const countLen = localStorage.getItem(`disabledRecruiters-${calViewDate}`);
+
     const parsedCount = countLen ? JSON.parse(countLen) : [];
+    const totalLen = parsedCount.length;
     // console.log("Disabled Array count : ", parsedCount.length);
     setCountOfDisableRecruiters(parsedCount.length);
     //  console.log("Disabled time :",disabledTimeSlotsCount);
     //  console.log("cur recruiter",currentRecruiter);
     // Update the list of disabled recruiters based on the date and time slots count
-    
+
     if (disabledTimeSlotsCount >= 5) {
       console.log("Stored recruiter", storedData.recruiter);
-      const existingData = localStorage.getItem("disabledRecruiters");
+      const existingData = localStorage.getItem(
+        `disabledRecruiters-${selectedDate1}`
+      );
       const parsedData = existingData ? JSON.parse(existingData) : [];
       const uniqueData = [...new Set([...parsedData, storedData.recruiter])];
-      localStorage.setItem("disabledRecruiters", JSON.stringify(uniqueData));
+      localStorage.setItem(
+        `disabledRecruiters-${selectedDate1}`,
+        JSON.stringify(uniqueData)
+      );
       setDisabledRecruiters(existingData);
     }
 
+    //Find the pattern from localstorage:
+    var keyPattern = /^disabledRecruiters-(\d{4}-\d{2}-\d{2})$/;
+    var dateFormats = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+
+      // Check if the key matches the desired format using the regex pattern
+      var match = key.match(keyPattern);
+
+      if (match) {
+        // Extract and store the matched date format
+        console.log(match);
+        var dateFormat = match[1];
+        dateFormats.push(dateFormat);
+        console.log("Matching Key:", key, "Date Format:", dateFormat);
+      }
+    }
+    if (dateFormats) {
+      // Convert date strings to Date objects
+      var dateObjects = dateFormats.map(function (dateString) {
+        return new Date(dateString);
+      });
+
+      // Find the maximum date using Math.max.apply
+      var maxDate = new Date(Math.max.apply(null, dateObjects));
+
+      // Format the maxDate as a string (if needed)
+      var maxDateAsString = maxDate.toISOString().slice(0, 10); // 'yyyy-mm-dd'
+      //convert this into date object :
+
+      const disabledToday = new Date(maxDateAsString);
+
+      // if (!isNaN(disabledToday.getTime()) && totalLen >= 5) {
+      //   // Increment the date by one day
+      //   disabledToday.setDate(disabledToday.getDate() + 1);
+      //   // console.log("Next 1 : ", disabledToday);
+      //   const changedDateformates = disabledToday.toISOString().split("T")[0];
+      //   // console.log("Next 2 :".changedDateformates);
+      //   setDisabledDate(changedDateformates);
+      // } else {
+      //   console.log("maxDateAsString is not a valid date string");
+      // }
+    }
   });
+
   const isValidEmail = (email) => {
     // A simple regular expression for email validation
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -157,31 +249,10 @@ function ModalForm() {
     // You can add your form submission logic here
     console.log(newFormData);
     handleClose();
-    window.location.reload();
+    // window.location.reload();
   };
 
-  const timeSlots = [
-    { value: "", label: "Select a time slot" },
-    { value: "9:00 AM to 10:00 AM", label: "9:00 AM to 10:00 AM" },
-    { value: "10:00 AM to 11:00 AM", label: "10:00 AM to 11:00 AM" },
-    { value: "11:00 AM to 12:00 PM", label: "11:00 AM to 12:00 PM" },
-    { value: "12:00 PM to 01:00 PM", label: "12:00 PM to 01:00 PM" },
-    { value: "01:00 PM to 02:00 PM", label: "01:00 PM to 02:00 PM" },
-    { value: "02:00 PM to 03:00 PM", label: "02:00 PM to 03:00 PM" },
-    { value: "03:00 PM to 04:00 PM", label: "03:00 PM to 04:00 PM" },
-    { value: "04:00 PM to 05:00 PM", label: "04:00 PM to 05:00 PM" },
-    { value: "05:00 PM to 06:00 PM", label: "05:00 PM to 06:00 PM" },
-    { value: "06:00 PM to 07:00 PM", label: "06:00 PM to 07:00 PM" },
-  ].map((slot) => {
-    return {
-      ...slot,
-      disabled:
-        storedData.timeSlots && storedData.timeSlots.includes(slot.value),
-    };
-  });
-
-
-  const d = localStorage.getItem("disabledRecruiters");
+  // const d = localStorage.getItem("disabledRecruiters");
   return (
     <>
       <div
@@ -289,13 +360,15 @@ function ModalForm() {
                   <Form.Control
                     type="date"
                     name="date"
-                    value={formData.date}
-                    onChange={handleInputChange}
+                    value={formDateValue}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      handleInputChange(e);
+                    }}
                     className={`form-control ${
                       formErrors.date ? "is-invalid" : ""
                     }`}
-                    min={minDate}
-                    
+                    min={disabledDate || minDate}
                   />
                   <span className="text-danger error">{formErrors.date}</span>
                 </Form.Group>
@@ -325,31 +398,46 @@ function ModalForm() {
                     <option value="">Select the recruiter</option>
                     <option
                       value="recruiter1"
-                      disabled={disabledRecruiters.includes("recruiter1")}
+                      disabled={
+                        disabledRecruiters &&
+                        disabledRecruiters.includes("recruiter1")
+                      }
                     >
                       Recruiter 1
                     </option>
                     <option
                       value="recruiter2"
-                      disabled={disabledRecruiters.includes("recruiter2")}
+                      disabled={
+                        disabledRecruiters &&
+                        disabledRecruiters.includes("recruiter2")
+                      }
                     >
                       Recruiter 2
                     </option>
                     <option
                       value="recruiter3"
-                      disabled={disabledRecruiters.includes("recruiter3")}
+                      disabled={
+                        disabledRecruiters &&
+                        disabledRecruiters.includes("recruiter3")
+                      }
                     >
                       Recruiter 3
                     </option>
                     <option
                       value="recruiter4"
-                      disabled={disabledRecruiters.includes("recruiter4")}
+                      disabled={
+                        disabledRecruiters &&
+                        disabledRecruiters.includes("recruiter4")
+                      }
                     >
                       Recruiter 4
                     </option>
                     <option
                       value="recruiter5"
-                      disabled={disabledRecruiters.includes("recruiter5")}
+                      disabled={
+                        disabledRecruiters &&
+                        disabledRecruiters.includes("recruiter5")
+                      }
                     >
                       Recruiter 5
                     </option>
