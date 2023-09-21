@@ -51,6 +51,7 @@ const CalendarView = () => {
     console.log("Hi ");
     setSelectedDate(localStorage.getItem('calselectedDate'))
   })
+  
   const handleDayClick = (info) => {
     if (
       (data.date ||
@@ -79,8 +80,6 @@ const CalendarView = () => {
         setCalDate(info.startStr);
         console.log("Selected Date:", info.startStr);
       }
-    } else {
-      return;
     }
   };
   const handleClose = () => {

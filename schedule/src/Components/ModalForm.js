@@ -63,7 +63,9 @@ function ModalForm() {
     const storedDataString = localStorage.getItem(
       `${formData.recruiter}-${formData.date}`
     );
+    
     if (storedDataString) {
+      console.log("Storedstring1",storedDataString);
       setStoredData(JSON.parse(storedDataString));
     } else {
       setStoredData({});
@@ -125,7 +127,7 @@ function ModalForm() {
     // Update the list of disabled recruiters based on the date and time slots count
 
     if (disabledTimeSlotsCount >= 5) {
-      console.log("Stored recruiter", storedData.recruiter);
+      // console.log("Stored recruiter", storedData.recruiter);
       const existingData = localStorage.getItem(
         `disabledRecruiters-${selectedDate1}`
       );
@@ -149,10 +151,10 @@ function ModalForm() {
 
       if (match) {
         // Extract and store the matched date format
-        console.log(match);
+        // console.log(match);
         var dateFormat = match[1];
         dateFormats.push(dateFormat);
-        console.log("Matching Key:", key, "Date Format:", dateFormat);
+        // console.log("Matching Key:", key, "Date Format:", dateFormat);
       }
     }
     if (dateFormats) {
@@ -249,7 +251,7 @@ function ModalForm() {
     // You can add your form submission logic here
     console.log(newFormData);
     handleClose();
-    // window.location.reload();
+    window.location.reload();
   };
 
   // const d = localStorage.getItem("disabledRecruiters");
